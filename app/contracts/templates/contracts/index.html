@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUẢN LÝ HỢP ĐỒNG - Hệ thống quản lý nội bộ</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-hover: #1e40af;
+            --primary-light: #eff6ff;
+            --sidebar-bg: #ffffff;
+            --body-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --success-bg: #f0fdf4;
+            --success-text: #166534;
+            --success-border: #bbf7d0;
+            --warning-bg: #fffbeb;
+            --warning-text: #92400e;
+            --warning-border: #fde68a;
+            --danger-bg: #fef2f2;
+            --danger-text: #991b1b;
+            --danger-border: #fecaca;
+            --info-bg: #f0f9ff;
+            --info-text: #075985;
+            --info-border: #bae6fd;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--body-bg);
+            color: var(--text-main);
+            font-size: 13px;
+            line-height: 1.5;
+            display: flex;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 1. Menu bên trái (Sidebar) */
+        .sidebar {
+            width: 230px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand {
+            padding: 1.35rem 1.35rem 1.15rem 1.35rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .brand-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+            display: block;
+            font-weight: 400;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            padding: 1rem 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            flex: 1;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 0.95rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 500;
+            font-size: 13px;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .nav-item a:hover {
+            background-color: var(--border-light);
+            color: var(--text-main);
+        }
+
+        .nav-item.active a {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 0.6rem 0.95rem;
+        }
+
+        .sidebar-footer {
+            padding: 1rem 1.25rem;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-muted);
+            background-color: #fafafa;
+        }
+
+        /* 2. Khung nội dung chính */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        /* Thanh điều hướng trên cùng (Topbar) */
+        .topbar {
+            height: 58px;
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.75rem;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            width: 380px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.5rem 0.85rem;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            font-size: 13px;
+            outline: none;
+            background-color: var(--border-light);
+            color: var(--text-main);
+            transition: border-color 0.15s, background-color 0.15s;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .search-input:focus {
+            border-color: #94a3b8;
+            background-color: #ffffff;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .user-info {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .user-info strong {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .btn-topbar {
+            padding: 0.45rem 0.95rem;
+            font-size: 13px;
+            color: var(--primary);
+            background-color: var(--primary-light);
+            border: 1px solid #bfdbfe;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.15s;
+        }
+
+        .btn-topbar:hover {
+            background-color: #dbeafe;
+        }
+
+        /* Khu vực nội dung làm việc */
+        .content-area {
+            padding: 28px 32px 36px 32px;
+            flex: 1;
+            max-width: 1440px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.25;
+            letter-spacing: -0.01em;
+        }
+
+        .page-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 0.35rem;
+        }
+
+        /* 3. Các thẻ thống kê (Tăng độ thoáng, đệm rộng rãi) */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 1.6rem;
+        }
+
+        .stat-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1.25rem 1.35rem;
+            min-height: 115px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .stat-value {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.2;
+            margin: 0.45rem 0 0.2rem 0;
+        }
+
+        .stat-note {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* 4. Khung bảng danh sách hợp đồng */
+        .panel {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 1.6rem;
+        }
+
+        .panel-header {
+            padding: 1.1rem 1.35rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #ffffff;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .panel-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.45rem 0.95rem;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: #ffffff;
+            border: 1px solid var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: #ffffff;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border-light);
+            color: var(--text-main);
+        }
+
+        /* Bảng hiển thị thông thoáng */
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 12.5px;
+            padding: 0.9rem 1.15rem;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 1rem 1.15rem;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-main);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: #fcfcfd;
+        }
+
+        /* Nhãn trạng thái hợp đồng (chú thích phụ 12px) */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.55rem;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .status-draft {
+            background-color: #f1f5f9;
+            color: #475569;
+            border-color: #cbd5e1;
+        }
+
+        .status-pending {
+            background-color: var(--warning-bg);
+            color: var(--warning-text);
+            border-color: var(--warning-border);
+        }
+
+        .status-active {
+            background-color: var(--success-bg);
+            color: var(--success-text);
+            border-color: var(--success-border);
+        }
+
+        .status-completed {
+            background-color: var(--info-bg);
+            color: var(--info-text);
+            border-color: var(--info-border);
+        }
+
+        .status-terminated {
+            background-color: var(--danger-bg);
+            color: var(--danger-text);
+            border-color: var(--danger-border);
+        }
+
+        .empty-state {
+            padding: 3.5rem 1.5rem;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .empty-state p {
+            margin-bottom: 1.15rem;
+            font-size: 13px;
+        }
+
+        /* Thông tin hệ thống chân trang */
+        .system-info-bar {
+            background-color: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.85rem 1.35rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .system-info-bar span strong {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        /* Tối ưu responsive tự nhiên cho laptop và màn hình nhỏ */
+        @media (max-width: 1024px) {
+            .search-container {
+                width: 260px;
+            }
+            .content-area {
+                padding: 22px 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+            .sidebar-nav {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 0.25rem;
+            }
+            .sidebar-footer {
+                display: none;
+            }
+            .topbar {
+                padding: 0 1rem;
+            }
+            .content-area {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Thanh Menu Bên Trái (Sidebar: 230px, font 13px) -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-title">QUẢN LÝ HỢP ĐỒNG</div>
+            <span class="brand-subtitle">Hệ thống quản lý nội bộ</span>
+        </div>
+
+        <ul class="sidebar-nav">
+            <li class="nav-item active">
+                <a href="/">Trang chủ</a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/contracts/contract/">Hợp đồng</a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/contracts/partner/">Đối tác</a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/contracts/contract/?status__exact=PENDING">Nhắc việc</a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/contracts/contracttype/">Báo cáo</a>
+            </li>
+            <li class="nav-divider"></li>
+            <li class="nav-item">
+                <a href="/admin/">Cài đặt</a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <span>Phiên bản 1.0 (Local Build)</span>
+        </div>
+    </aside>
+
+    <!-- 2. Khung Nội Dung Chính -->
+    <div class="main-wrapper">
+        <!-- Thanh Điều Hướng Trên Cùng (Topbar: font 13px) -->
+        <header class="topbar">
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Tìm kiếm mã hợp đồng, đối tác..." disabled>
+            </div>
+
+            <div class="topbar-actions">
+                <div class="user-info">
+                    Tài khoản: <strong>Quản trị viên</strong>
+                </div>
+                <a href="/admin/" class="btn-topbar">Vào trang Quản trị</a>
+            </div>
+        </header>
+
+        <!-- Khu Vực Hiển Thị Nội Dung Chính -->
+        <main class="content-area">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Tổng quan hợp đồng</h1>
+                    <p class="page-subtitle">Theo dõi tình trạng hợp đồng kinh tế và tiến độ thực hiện</p>
+                </div>
+            </div>
+
+            <!-- Các Thẻ Thống Kê (Số liệu 26px đậm, nhãn/chú thích 12px, thoáng đãng) -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Tổng số hợp đồng</div>
+                    <div class="stat-value">{{ total_contracts }}</div>
+                    <div class="stat-note">Ghi nhận trong cơ sở dữ liệu</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Đang hiệu lực</div>
+                    <div class="stat-value" style="color: var(--success-text);">{{ active_contracts }}</div>
+                    <div class="stat-note">{{ draft_contracts }} bản dự thảo</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Đối tác</div>
+                    <div class="stat-value">{{ total_partners }}</div>
+                    <div class="stat-note">Khách hàng và nhà cung cấp</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Tổng giá trị</div>
+                    <div class="stat-value" style="font-size: 22px;">{{ total_value|floatformat:0 }} đ</div>
+                    <div class="stat-note">{{ completed_contracts }} hợp đồng đã thanh lý</div>
+                </div>
+            </section>
+
+            <!-- Bảng Danh Sách Hợp Đồng (Tiêu đề khu vực 16px, hàng và ô thông thoáng) -->
+            <section class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Danh sách hợp đồng gần đây</h2>
+                    <div class="panel-actions">
+                        <a href="/admin/contracts/contract/add/" class="btn btn-primary">+ Tạo hợp đồng</a>
+                        <a href="/admin/contracts/contract/" class="btn btn-secondary">Xem tất cả</a>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    {% if recent_contracts %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Số hợp đồng</th>
+                                <th>Tên hợp đồng</th>
+                                <th>Đối tác</th>
+                                <th>Loại hợp đồng</th>
+                                <th>Giá trị (VNĐ)</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày ký</th>
+                                <th>Ngày hết hạn</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in recent_contracts %}
+                            <tr>
+                                <td><strong>{{ item.contract_number }}</strong></td>
+                                <td>{{ item.title }}</td>
+                                <td>{{ item.partner.name }}</td>
+                                <td>{{ item.contract_type.name|default:"-" }}</td>
+                                <td>{{ item.value|floatformat:0 }} đ</td>
+                                <td>
+                                    {% if item.status == 'DRAFT' %}
+                                        <span class="status-badge status-draft">Dự thảo</span>
+                                    {% elif item.status == 'PENDING' %}
+                                        <span class="status-badge status-pending">Chờ duyệt</span>
+                                    {% elif item.status == 'ACTIVE' %}
+                                        <span class="status-badge status-active">Đang hiệu lực</span>
+                                    {% elif item.status == 'COMPLETED' %}
+                                        <span class="status-badge status-completed">Đã thanh lý</span>
+                                    {% else %}
+                                        <span class="status-badge status-terminated">Hủy/Chấm dứt</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.sign_date|date:"d/m/Y"|default:"-" }}</td>
+                                <td>{{ item.end_date|date:"d/m/Y"|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="empty-state">
+                        <p>Chưa có bản ghi hợp đồng nào trong cơ sở dữ liệu.</p>
+                        <a href="/admin/contracts/contract/add/" class="btn btn-primary">+ Thêm bản ghi mới trong Quản trị</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- Khối Thông Tin Môi Trường Vận Hành (Chú thích 12px) -->
+            <footer class="system-info-bar">
+                <span>Trạng thái kết nối: <strong>HTTPS (TLS)</strong></span>
+                <span>Cơ sở dữ liệu: <strong>PostgreSQL</strong></span>
+                <span>Máy chủ web: <strong>Nginx Reverse Proxy & Gunicorn</strong></span>
+            </footer>
+        </main>
+    </div>
+
+</body>
+</html>

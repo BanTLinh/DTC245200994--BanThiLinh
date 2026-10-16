@@ -1,0 +1,73 @@
+services:
+  # Database Service (PostgreSQL)
+  # Isolated in backend_net, no ports exposed to host machine
+  db:
+    image: postgres:15-alpine
+    container_name: cm_postgres_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Web Application Service (Django + Gunicorn)
+  # Runs as non-root user (appuser UID 1001)
+  # Connects to both backend_net (for DB) and frontend_net (for Nginx)
+  web:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: cm_django_web
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    networks:
+      - backend_net
+      - frontend_net
+    expose:
+      - "8000"
+
+  # Reverse Proxy Service (Nginx)
+  # Only exposes HTTPS port 443 to the local host
+  # Handles SSL/TLS termination, Security Headers, and Static/Media serving
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: cm_nginx_proxy
+    restart: unless-stopped
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+    depends_on:
+      - web
+    networks:
+      - frontend_net
+
+networks:
+  frontend_net:
+    driver: bridge
+  backend_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
