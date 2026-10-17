@@ -1,6 +1,5 @@
+
 services:
-  # Database Service (PostgreSQL)
-  # Isolated in backend_net, no ports exposed to host machine
   db:
     image: postgres:15-alpine
     container_name: cm_postgres_db
@@ -19,9 +18,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # Web Application Service (Django + Gunicorn)
-  # Runs as non-root user (appuser UID 1001)
-  # Connects to both backend_net (for DB) and frontend_net (for Nginx)
   web:
     build:
       context: ./app
@@ -42,9 +38,6 @@ services:
     expose:
       - "8000"
 
-  # Reverse Proxy Service (Nginx)
-  # Only exposes HTTPS port 443 to the local host
-  # Handles SSL/TLS termination, Security Headers, and Static/Media serving
   nginx:
     image: nginx:1.27-alpine
     container_name: cm_nginx_proxy
@@ -61,13 +54,64 @@ services:
     networks:
       - frontend_net
 
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: cm_postgres_exporter
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=disable"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend_net
+      - monitoring_net
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: cm_prometheus
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    ports:
+      - "127.0.0.1:9090:9090"
+    depends_on:
+      - postgres-exporter
+    networks:
+      - monitoring_net
+
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: cm_grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring_net
+
 networks:
   frontend_net:
     driver: bridge
   backend_net:
+    driver: bridge
+  monitoring_net:
     driver: bridge
 
 volumes:
   postgres_data:
   static_volume:
   media_volume:
+  prometheus_data:
+  grafana_data:
